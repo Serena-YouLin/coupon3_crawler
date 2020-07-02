@@ -1,0 +1,74 @@
+import pandas as pd
+import json
+import requests
+
+
+def headers_raw_to_dict(headers_raw):
+    """
+    Convert raw headers (single multi-line bytestring)
+    to a dictionary.
+    For example:
+    from copyheaders import headers_raw_to_dict
+    headers_raw_to_dict(b"Content-type: text/html\n\rAccept: gzip\n\n")   # doctest: +SKIP
+    {'Content-type': ['text/html'], 'Accept': ['gzip']}
+    Incorrect input:
+    headers_raw_to_dict(b"Content-typt gzip\n\n")
+    {}
+    Argument is ``None`` (return ``None``):
+    headers_raw_to_dict(None)
+    """
+
+    if headers_raw is None:
+        return None
+    headers = headers_raw.splitlines()
+    headers_tuples = [header.split(':', 1) for header in headers]
+
+    result_dict = {}
+    for header_item in headers_tuples:
+        if not len(header_item) == 2:
+            continue
+
+        item_key = header_item[0].strip()
+        item_value = header_item[1].strip()
+        result_dict[item_key] = item_value
+
+    return result_dict
+
+CityList = ['基隆市','臺北市','新北市','桃園市','新竹市','新竹縣','苗栗縣','臺中市','彰化縣','南投縣','雲林縣','嘉義市','嘉義縣','臺南市','高雄市','屏東縣','臺東縣','花蓮縣','宜蘭縣','澎湖縣','金門縣','連江縣'
+            ]
+
+for city in CityList:
+
+    url = 'https://funtour.tbroc.gov.tw/hotel/hotelList'
+    r = requests.post(url, data=dict(
+        cityName=city,
+        townName='全部區域',
+    ), headers=headers_raw_to_dict("""
+        accept: */*
+        accept-encoding: gzip, deflate, br
+        accept-language: zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7
+        content-length: 82
+        content-type: application/x-www-form-urlencoded; charset=UTF-8
+        cookie: laravel_session=eyJpdiI6ImJINmlnZjlqQWNDZklWS3l2dzAxbHc9PSIsInZhbHVlIjoibUFjc1VXTGttM0QzRWkzc3Z1UE5NRlE4VXFjOHlieFwvdlwvOWJ3b3YrenFEdFJwN3Q1QUZ2YlwvcXh5bTA5cndYSiIsIm1hYyI6IjcxNTQ2OTI0ZTc2M2ZiZjg1YmY4NGUzNTRlMGZjNTAxMDJiMDEzMzVlMWRiZGQ3ZDA2NTdkYWQ1ZmU2MTVmZjgifQ%3D%3D; qmFxihJTkRqqNRkaf1qt8cBhlwjDk6rts4dZuZfq=eyJpdiI6InZLVHZ1QUlRT3M2c0lVTFFlK0VBS3c9PSIsInZhbHVlIjoiRGc4K3BNZlQ3VnZ1YjBaWjRiK2ZXdlM4MEZydDdQVGR3dHRYYU5oYllhQm82aHVybUJMaGxudGExclM4VDAxdUc5VlNWc2pkdWJzb0hBTUtRc2lsaHBaVElWTk5PNzRwZkZoTGU2aElVdzMwR3JkVnB4NzdaYjlWd2tDVHBjdnlJVW5SVTJIWXQ4NWFlT1RDdDNUckMxRHJac0drWnJxUk5qZjVlWENoSko1WU1aaGR1eitzRDU4NVBSWHFcL1RYXC9LUVQ2aHgrb3RhK2pKQnlOQ1FsZTMyNHY5bkhBOWVFeXU2blRGbWNEUGo3TnIxdk1WN3R6dUR5WG1LZ0laQkNvU1IxNDJVU3RiRzhUZUVLMWF2d2Q5SFwvd1IyK25QK2RcL2VzQjJSVE9wbzNWWlhueXZXS2dScGdGSGs3YlROK1RsMFdvckhGSlQwdENlSnlaRUFkUDA1QT09IiwibWFjIjoiMGQ0OGE3NzkxYWU3MWFkZGU4Yjc5Nzg2MzZjZmY2MGI0YzNlNTA5ZDk2ZTRjNzhmY2I0MjlhYzgxODk2MGZhOSJ9
+        origin: https://funtour.tbroc.gov.tw
+        referer: https://funtour.tbroc.gov.tw/hotel
+        sec-fetch-dest: empty
+        sec-fetch-mode: cors
+        sec-fetch-site: same-origin
+        user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36
+        x-requested-with: XMLHttpRequest
+"""))
+
+    # r.json()
+    # print(r.json())
+
+# generate a python dict list
+    data = r.json()
+
+    # second line of code: convert the dict list to csv and save it into the file pandas.csv
+    pd.read_json(json.dumps(data)).to_csv('/Users/serena/PycharmProjects/untitled/csv'+city+'.csv')
+
+    # verify the csv file content
+    with open('/Users/serena/PycharmProjects/untitled/csv'+city+'.csv') as f:
+        print(f.read())
+
